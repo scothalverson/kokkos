@@ -841,11 +841,11 @@ deep_copy (DualView<DT,DL,DD,DM> dst, // trust me, this must not be a reference
   }
   if ( src.need_sync_device() ) {
     deep_copy (dst.h_view, src.h_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_space> ();
+    dst.modify_host();
   }
   else {
     deep_copy (dst.d_view, src.d_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
+    dst.modify_device();
   } 
 }
 
@@ -862,10 +862,10 @@ deep_copy (const ExecutionSpace& exec ,
   }
   if ( src.need_sync_device() ) {
     deep_copy (exec, dst.h_view, src.h_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_space> ();
+    dst.modify_host();
   } else {
     deep_copy (exec, dst.d_view, src.d_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
+    dst.modify_device();
   }
 }
 
