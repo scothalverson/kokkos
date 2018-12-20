@@ -131,9 +131,9 @@ namespace Impl {
     template <typename ViewType>
     void run_me() {
 
-      int n = 10;
-      int m = 5;
-      int sum_total = n + m;
+      const unsigned int n = 10;
+      const unsigned int m = 5;
+      const unsigned int sum_total = n * m;
 
       ViewType a("A",n,m);
       ViewType b("B",n,m);
@@ -145,7 +145,9 @@ namespace Impl {
 
       // Check device view is initialized as expected
       scalar_type a_d_sum = 0;
-      Kokkos::parallel_reduce( Kokkos::RangePolicy<execution_space>(0,n), SumViewEntriesFunctor<scalar_type, ViewType>(a.d_view), a_d_sum );
+      // Execute on the execution_space associated with t_dev's memory space
+      typedef typename ViewType::t_dev::memory_space::execution_space t_dev_exec_space;
+      Kokkos::parallel_reduce( Kokkos::RangePolicy<t_dev_exec_space>(0,n), SumViewEntriesFunctor<scalar_type, typename ViewType::t_dev>(a.d_view), a_d_sum );
       ASSERT_EQ(a_d_sum, sum_total);
 
       // Check host view is synced as expected
@@ -164,7 +166,8 @@ namespace Impl {
       // Perform same checks on b as done on a
       // Check device view is initialized as expected
       scalar_type b_d_sum = 0;
-      Kokkos::parallel_reduce( Kokkos::RangePolicy<execution_space>(0,n), SumViewEntriesFunctor<scalar_type, ViewType>(b.d_view), b_d_sum );
+      // Execute on the execution_space associated with t_dev's memory space
+      Kokkos::parallel_reduce( Kokkos::RangePolicy<t_dev_exec_space>(0,n), SumViewEntriesFunctor<scalar_type, typename ViewType::t_dev>(b.d_view), b_d_sum );
       ASSERT_EQ(b_d_sum, sum_total);
 
       // Check host view is synced as expected
