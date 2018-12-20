@@ -203,7 +203,7 @@ void test_dualview_combinations(unsigned int size)
 template <typename Scalar, typename Device>
 void test_dualview_deep_copy()
 {
-  Impl::test_dual_view_deep_copy<Scalar,Device> test();
+  Impl::test_dual_view_deep_copy<Scalar,Device> ();
 }
 
 TEST_F( TEST_CATEGORY, dualview_combination) {
