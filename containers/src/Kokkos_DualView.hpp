@@ -560,6 +560,10 @@ public:
     return modified_flags(1)<modified_flags(0);
   }
 
+  KOKKOS_INLINE_FUNCTION constexpr typename t_modified_flags::pointer_type modified_flags_data () const {
+    return modified_flags.data();
+  }
+
   /// \brief Mark data as modified on the given device \c Device.
   ///
   /// If \c Device is the same as this DualView's device type, then
@@ -832,16 +836,17 @@ void
 deep_copy (DualView<DT,DL,DD,DM> dst, // trust me, this must not be a reference
            const DualView<ST,SL,SD,SM>& src )
 {
-  if(src.modified_flags.data()==NULL || dst.modified_flags.data()==NULL) {
+  if(src.modified_flags_data()==NULL || dst.modified_flags_data()==NULL) {
     return deep_copy(dst.d_view, src.d_view);
   }
-  if (src.modified_flags(1) >= src.modified_flags(0)) {
-    deep_copy (dst.d_view, src.d_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
-  } else {
+  if ( src.need_sync_device() ) {
     deep_copy (dst.h_view, src.h_view);
     dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_space> ();
   }
+  else {
+    deep_copy (dst.d_view, src.d_view);
+    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
+  } 
 }
 
 template< class ExecutionSpace ,
@@ -852,15 +857,15 @@ deep_copy (const ExecutionSpace& exec ,
            DualView<DT,DL,DD,DM> dst, // trust me, this must not be a reference
            const DualView<ST,SL,SD,SM>& src )
 {
-  if(src.modified_flags.data()==NULL || dst.modified_flags.data()==NULL) {
+  if(src.modified_flags_data()==NULL || dst.modified_flags_data()==NULL) {
     return deep_copy(exec, dst.d_view, src.d_view);
   }
-  if (src.modified_flags(1) >= src.modified_flags(0)) {
-    deep_copy (exec, dst.d_view, src.d_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
-  } else {
+  if ( src.need_sync_device() ) {
     deep_copy (exec, dst.h_view, src.h_view);
     dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_space> ();
+  } else {
+    deep_copy (exec, dst.d_view, src.d_view);
+    dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
   }
 }
 
